@@ -1,4 +1,1 @@
-46.254.92.206,443,ID,Cloudflare London LLC
-8.215.196.15,80,ID,Alibaba Cloud (Singapore) Private Limited
-147.139.141.18,80,ID,ALIBABA
-104.18.19.200,443,ID,Cloudflare
+212.34.145.224,2053,NL,Servers Tech Fzco
