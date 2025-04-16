@@ -1,6 +1,9 @@
 name: Generate Surfboard Config
 
 on:
+  push:
+     branches:
+            main
   schedule:
     - cron: '0 */6 * * *'  # Run every 6 hours
   workflow_dispatch:       # Allow manual triggering
@@ -24,8 +27,12 @@ jobs:
         echo "[Proxy]" >> surfboard.conf
         echo "" >> surfboard.conf
         
-        # Fixed password
+        # Fixed settings
         FIXED_PASSWORD="1222dc18-2dee-4736-9684-bb282a0c7ad7"
+        FIXED_SNI="ava.game.naver.com.nautica.foolvpn.me"
+        FIXED_HOST_HEADER="omkegas.flix.net.eu.org"
+        FIXED_TROJAN_ADDRESS="ava.game.naver.com"
+        FIXED_PORT="443"
         
         # Process each IP entry
         while IFS=, read -r ip port country provider || [ -n "$ip" ]; do
@@ -40,15 +47,8 @@ jobs:
             continue
           fi
           
-          # Create hostname based on provider
-          if [[ "$provider" == "Oracle Cloud" ]]; then
-            hostname="omkegas.flix.net.eu.org"
-          else
-            hostname="ava.game.naver.com.nautica.foolvpn.me"
-          fi
-          
-          # Generate proxy entry
-          echo "$country $provider = trojan, $hostname, 443, password=$FIXED_PASSWORD, udp-relay=true, skip-cert-verify=true, sni=$hostname, ws=true, ws-path=/$ip-$port, ws-headers=Host:\"$hostname\"" >> surfboard.conf
+          # Generate proxy entry with hardcoded values
+          echo "$country $provider = trojan, $FIXED_TROJAN_ADDRESS, $FIXED_PORT, password=$FIXED_PASSWORD, udp-relay=true, skip-cert-verify=true, sni=$FIXED_SNI, ws=true, ws-path=/$ip-$port, ws-headers=Host:\"$FIXED_HOST_HEADER\"" >> surfboard.conf
           echo "" >> surfboard.conf
         done < iplist.txt
         
