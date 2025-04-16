@@ -35,6 +35,11 @@ jobs:
           country=$(echo $country | xargs)
           provider=$(echo $provider | xargs)
           
+          # Skip empty lines
+          if [ -z "$ip" ]; then
+            continue
+          fi
+          
           # Create hostname based on provider
           if [[ "$provider" == "Oracle Cloud" ]]; then
             hostname="omkegas.flix.net.eu.org"
@@ -42,8 +47,7 @@ jobs:
             hostname="ava.game.naver.com.nautica.foolvpn.me"
           fi
           
-          # Generate proxy entry with fixed password
-          echo "# $country $provider #" >> surfboard.conf
+          # Generate proxy entry with fixed password (without comment)
           echo "$country $provider = trojan, $hostname, 443, password=$FIXED_PASSWORD, udp-relay=true, skip-cert-verify=true, sni=$hostname, ws=true, ws-path=/$ip-$port, ws-headers=Host:\"$hostname\"" >> surfboard.conf
           echo "" >> surfboard.conf
         done < iplist.txt
@@ -54,6 +58,12 @@ jobs:
         
         # Add all proxies to the select group
         while IFS=',' read -r ip port country provider; do
+          # Skip empty lines
+          if [ -z "$ip" ]; then
+            continue
+          fi
+          
+          country=$(echo $country | xargs)
           provider=$(echo $provider | xargs)
           echo "$country $provider," >> surfboard.conf
         done < iplist.txt
