@@ -1,0 +1,71 @@
+name: Generate Surfboard Config
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Run every 6 hours
+  workflow_dispatch:       # Allow manual triggering
+
+jobs:
+  generate-config:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Generate Surfboard Config
+      run: |
+        # Download the IP list
+        curl -s https://raw.githubusercontent.com/adytiass/masanice/refs/heads/main/proxyLive.txt -o iplist.txt
+        
+        # Create the Surfboard config
+        echo "[General]" > surfboard.conf
+        echo "dns-server = system, 108.137.44.39, 108.137.44.9, puredns.org:853" >> surfboard.conf
+        echo "#dns-server = system" >> surfboard.conf
+        echo "[Proxy]" >> surfboard.conf
+        echo "" >> surfboard.conf
+        
+        # Fixed password
+        FIXED_PASSWORD="1222dc18-2dee-4736-9684-bb282a0c7ad7"
+        
+        # Process each IP entry
+        while IFS=',' read -r ip port country provider; do
+          # Clean up variables
+          ip=$(echo $ip | xargs)
+          port=$(echo $port | xargs)
+          country=$(echo $country | xargs)
+          provider=$(echo $provider | xargs)
+          
+          # Create hostname based on provider
+          if [[ "$provider" == "Oracle Cloud" ]]; then
+            hostname="omkegas.flix.net.eu.org"
+          else
+            hostname="ava.game.naver.com.nautica.foolvpn.me"
+          fi
+          
+          # Generate proxy entry with fixed password
+          echo "# $country $provider #" >> surfboard.conf
+          echo "$country $provider = trojan, $hostname, 443, password=$FIXED_PASSWORD, udp-relay=true, skip-cert-verify=true, sni=$hostname, ws=true, ws-path=/$ip-$port, ws-headers=Host:\"$hostname\"" >> surfboard.conf
+          echo "" >> surfboard.conf
+        done < iplist.txt
+        
+        # Add Proxy Group section
+        echo "[Proxy Group]" >> surfboard.conf
+        echo "Select Group = select," >> surfboard.conf
+        
+        # Add all proxies to the select group
+        while IFS=',' read -r ip port country provider; do
+          provider=$(echo $provider | xargs)
+          echo "$country $provider," >> surfboard.conf
+        done < iplist.txt
+        
+        # Add other groups
+        echo "Load Balance," >> surfboard.conf
+        echo "Best Ping," >> surfboard.conf
+        echo "FallbackGroup," >> surfboard.conf
+        
+        # Commit the changes
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        git add surfboard.conf
+        git commit -m "Update Surfboard config $(date +'%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
+        git push
