@@ -28,15 +28,15 @@ jobs:
         FIXED_PASSWORD="1222dc18-2dee-4736-9684-bb282a0c7ad7"
         
         # Process each IP entry
-        while IFS=',' read -r ip port country provider; do
+        while IFS=, read -r ip port country provider || [ -n "$ip" ]; do
           # Clean up variables
-          ip=$(echo $ip | xargs)
-          port=$(echo $port | xargs)
-          country=$(echo $country | xargs)
-          provider=$(echo $provider | xargs)
+          ip=$(echo "$ip" | xargs)
+          port=$(echo "$port" | xargs)
+          country=$(echo "$country" | xargs)
+          provider=$(echo "$provider" | xargs)
           
-          # Skip empty lines
-          if [ -z "$ip" ]; then
+          # Skip empty or invalid lines
+          if [ -z "$ip" ] || [ -z "$port" ] || [ -z "$country" ] || [ -z "$provider" ]; then
             continue
           fi
           
@@ -47,7 +47,7 @@ jobs:
             hostname="ava.game.naver.com.nautica.foolvpn.me"
           fi
           
-          # Generate proxy entry with fixed password (without comment)
+          # Generate proxy entry
           echo "$country $provider = trojan, $hostname, 443, password=$FIXED_PASSWORD, udp-relay=true, skip-cert-verify=true, sni=$hostname, ws=true, ws-path=/$ip-$port, ws-headers=Host:\"$hostname\"" >> surfboard.conf
           echo "" >> surfboard.conf
         done < iplist.txt
@@ -56,15 +56,17 @@ jobs:
         echo "[Proxy Group]" >> surfboard.conf
         echo "Select Group = select," >> surfboard.conf
         
-        # Add all proxies to the select group
-        while IFS=',' read -r ip port country provider; do
-          # Skip empty lines
-          if [ -z "$ip" ]; then
+        # Process the file again for Proxy Group entries
+        while IFS=, read -r ip port country provider || [ -n "$ip" ]; do
+          # Clean up variables
+          country=$(echo "$country" | xargs)
+          provider=$(echo "$provider" | xargs)
+          
+          # Skip empty or invalid lines
+          if [ -z "$country" ] || [ -z "$provider" ]; then
             continue
           fi
           
-          country=$(echo $country | xargs)
-          provider=$(echo $provider | xargs)
           echo "$country $provider," >> surfboard.conf
         done < iplist.txt
         
