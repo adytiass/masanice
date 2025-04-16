@@ -90,6 +90,10 @@ jobs:
       - name: 🏗 Get dependencies
         run: npm i
 
+      - uses: actions/setup-node@v4
+        with:
+         node-version: '18.0.0'
+
       - name: 📚 Wrangler publish
         # github.com/cloudflare/wrangler-action
         uses: cloudflare/wrangler-action@2.0.0
