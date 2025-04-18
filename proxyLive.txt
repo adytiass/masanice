@@ -3,5 +3,4 @@
 91.230.213.70,443,KW,Warba Bank (KSC)
 212.34.145.224,2053,NL,Servers Tech Fzco
 192.243.114.104,2054,US,IT7 Networks
-45.11.230.116,2054,US,Kuroit
 103.6.234.246,443,VN,Online Data Company
